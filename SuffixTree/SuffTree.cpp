@@ -69,7 +69,12 @@ class STree {
         }
     }
 
-     
+    std::vector <long long> PatternSearch(std::string &txt){
+        std::vector <long long> ans(txt.size());
+        for (long long i = 0; i < ans.size(); i++){
+            
+        }
+    } 
 
     private:
 

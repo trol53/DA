@@ -11,19 +11,22 @@ class TNode {
             left = l;
             right = r;
             leafend = -1;
+            edgelength = 0;
         }
         TNode *pred;
         TNode *link;
         long long left;
         long long *right;
+        long long edgelength;
         long long leafend;
+
         std::map <char, TNode*> child;
 };
 
 class STree {
     public:
     STree(std::string &str){
-        text = str; 
+        text = str;
         rootend = new long long();
         *rootend = -1;
         root = new TNode(nullptr, -1, rootend);
@@ -69,20 +72,50 @@ class STree {
         }
     }
 
+    std::vector <long long> PatternSearch(std::string &txt){
+        std::vector <long long> ans(txt.size());
+        TNode *active = root;
+        //long long length = 0;
+        long long activesize = 0;
+        if (root->child.count(txt[0]) == 0){
+            ans[0] = 0;
+        }else{ 
+            ans[0] = 1;
+            activesize = 1;
+            active = active->child[txt[0]];
+        }
+        for (long long i = 1; i < ans.size(); i++){
+            
+        }
+    } 
+
      
 
     private:
+
+    bool WalkDown(){
+
+    }
+
+    void SetLength (TNode *node){
+        if (node != root){
+            node->edgelength = node->pred->edgelength + GetLength(node);
+        }
+        for (auto i : node->child){
+            SetLength(i.second);
+        }
+            
+    }
 
     void PrintR(TNode *r, long long dpth){
         for (long long i = 0; i < dpth; ++i) {
             putchar('\t');
         }
-        //if (r != root){
-            std::cout << "node represents: ";
-            for (long long i = r->left; i <= *r->right; i++) {   
-                std::cout << text[i];
-            }
-        //}
+
+        std::cout << "node represents: ";
+        for (long long i = r->left; i <= *r->right; i++) {   
+            std::cout << text[i];
+        }
         std::cout << '\n';
 
         for (auto it : r->child) {
@@ -103,6 +136,7 @@ class STree {
         for (long long i = 0; i < text.size(); i++){
             AddChar(i);
         }
+        SetLength(root);
     }
 
     bool GoEdge (TNode *curr) {

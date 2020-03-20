@@ -85,13 +85,51 @@ class STree {
             active = active->child[txt[0]];
         }
         for (long long i = 1; i < ans.size(); i++){
+            if (active->left + activesize > *active->right){
+                if (active->child.count(txt[i]) != 0){
+                    activesize = 1;
+                    ans[i] = ans[i - 1] + 1;
+                    active = active->child[txt[i]];
+                    continue;
+                } else{
+
+                }
+            }
             if (ans[i - 1] == 0){
                 if (active->child.count(txt[i]) == 0){
                     ans[i] = 0;
                     continue;
-                }
-                if ()
+                } 
+                ans[i] = 1;
+                active = active->child[txt[i]];
+                activesize = 1;
+                continue;
             }
+            if (ans[i - 1] == 1){
+                if (GetLength(active) == 1){
+                    if (active->child.count(txt[i]) == 0){
+                        ans[i] = 0;
+                        active = root;
+                        activesize = 0;
+                        continue;
+                    }
+                } else{
+                    if (txt[i] != text[active->left + activesize]){
+                        ans[i] = 0;
+                        active = root;
+                        activesize = 0;
+                        continue;
+                    }
+                }
+            }
+            if (txt[i] == text[active->left + activesize]){
+                activesize++;
+                ans[i] = ans[i - 1] + 1;
+                continue;    
+            } else {
+                
+            }
+
         }
     } 
 

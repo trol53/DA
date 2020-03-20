@@ -85,7 +85,13 @@ class STree {
             active = active->child[txt[0]];
         }
         for (long long i = 1; i < ans.size(); i++){
-            
+            if (ans[i - 1] == 0){
+                if (active->child.count(txt[i]) == 0){
+                    ans[i] = 0;
+                    continue;
+                }
+                if ()
+            }
         }
     } 
 

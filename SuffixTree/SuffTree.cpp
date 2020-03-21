@@ -92,7 +92,7 @@ class STree {
                     active = active->child[txt[i]];
                     continue;
                 } else{
-
+                    
                 }
             }
             if (ans[i - 1] == 0){
@@ -127,7 +127,7 @@ class STree {
                 ans[i] = ans[i - 1] + 1;
                 continue;    
             } else {
-                
+
             }
 
         }

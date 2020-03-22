@@ -75,7 +75,7 @@ class STree {
     std::vector <long long> PatternSearch(std::string &txt){
         std::vector <long long> ans(txt.size());
         TNode *active = root;
-        //long long length = 0;
+        std::pair <long long, TNode*> tmp;
         long long activesize = 0;
         if (root->child.count(txt[0]) == 0){
             ans[0] = 0;
@@ -85,16 +85,28 @@ class STree {
             active = active->child[txt[0]];
         }
         for (long long i = 1; i < ans.size(); i++){
+            if (active == root){
+                if (root->child.count(txt[i]) == 0){
+                    ans[i] = 0;
+                    activesize = 0;
+                    continue;
+                } else {
+                    ans[i] = 1;
+                    activesize = 1; 
+                    active = root->child[txt[i]];
+                    continue;
+                }
+            }
             if (active->left + activesize > *active->right){
                 if (active->child.count(txt[i]) != 0){
                     activesize = 1;
-                    ans[i] = ans[i - 1] + 1;
+                    ans[i] = active->edgelength + 1;
                     active = active->child[txt[i]];
                     continue;
                 } else{
                     active = active->link;
                     i--;
-                    activesize = *active->right - active->left + 1;
+                    activesize = 0;
                     continue;
                 }
             }
@@ -117,7 +129,7 @@ class STree {
                         continue;
                     }
                 } else{
-                    if (txt[i] != text[active->left + activesize]){
+                    if (txt[i] != text[active->left + activesize] && text.size() != 2){
                         ans[i] = 0;
                         active = root;
                         activesize = 0;
@@ -127,13 +139,21 @@ class STree {
             }
             if (txt[i] == text[active->left + activesize]){
                 activesize++;
-                ans[i] = ans[i - 1] + 1;
+                ans[i] = active->pred->edgelength + activesize;
                 continue;    
             } else {
-
+                i--;
+                if (active->link == root){
+                    active = root;
+                    activesize = 0;
+                    continue;
+                }
+                tmp = WalkDown(activesize, active);
+                active = tmp.second;
+                activesize = tmp.first;
             }
-
         }
+        return ans;
     } 
 
     
@@ -141,7 +161,14 @@ class STree {
     private:
 
     std::pair<long long, TNode*> WalkDown(long long size, TNode *tmp){
-        long long pos = 0;;
+        long long pos = 0;
+        TNode *next = tmp->pred->link->child[text[tmp->left + pos]];
+        while (size > GetLength(next)){
+            size -= GetLength(next);
+            pos += GetLength(next);
+            next = next->child[text[tmp->left + pos]];
+        }
+        return std::make_pair(size, next);
 
     }
 
@@ -178,6 +205,7 @@ class STree {
     void Build(){
         activenode = root;
         lastnode = nullptr;
+        root->link = nullptr;
         activeEdge = -1;
         activeLength = 0;
         remainingcount = 0;
@@ -254,7 +282,7 @@ class STree {
         for (auto r : node->child){
             DeleteTree(r.second);
         }
-        if (!node->child.clear())
+        if (node->link == root)
             delete node->right; 
         delete node;
     }
@@ -277,9 +305,17 @@ int main(){
     std::ios::sync_with_stdio(false);
     std::string pattern, text;
     std::cin >> pattern >> text;
-    text = text + "~";
-    STree suff(text);
-    std::cout << suff.TextSearch(pattern) << '\n';
+    pattern = pattern + "~";
+    STree suff(pattern);
+    std::vector <long long> v = suff.PatternSearch(text);
+    for (long long i = 0; i < v.size(); i++){
+        std::cout << v[i] << '\n';
+    } 
+    for (long long i = 0; i < v.size(); i++){
+        if (v[i] == pattern.size() - 1){
+            std::cout << i - pattern.size() + 2;
+        }
+    }
     //suff.Print();
     
     

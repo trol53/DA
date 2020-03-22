@@ -92,7 +92,10 @@ class STree {
                     active = active->child[txt[i]];
                     continue;
                 } else{
-
+                    active = active->link;
+                    i--;
+                    activesize = *active->right - active->left + 1;
+                    continue;
                 }
             }
             if (ans[i - 1] == 0){
@@ -137,7 +140,8 @@ class STree {
 
     private:
 
-    bool WalkDown(){
+    std::pair<long long, TNode*> WalkDown(long long size, TNode *tmp){
+        long long pos = 0;;
 
     }
 
@@ -246,9 +250,12 @@ class STree {
 
 
     void DeleteTree(TNode *node){
+        delete rootend;
         for (auto r : node->child){
             DeleteTree(r.second);
         }
+        if (!node->child.clear())
+            delete node->right; 
         delete node;
     }
 

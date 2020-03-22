@@ -130,7 +130,7 @@ class STree {
                 ans[i] = ans[i - 1] + 1;
                 continue;    
             } else {
-                
+
             }
 
         }

@@ -106,9 +106,6 @@ class STree {
                         checkway = active->pred->edgelength + activesize;
                         break;
                     }
-                }
-            }
-        }
         for (long long i = 1; i < ans.size(); i++){
             if (ans[i - 1] == 0){
                 if (active->child.count(txt[i]) == 0){
@@ -125,7 +122,7 @@ class STree {
                         continue;
                     }
                 } else{
-                    if (txt[i] != text[active->left + activesize]){
+                    if (txt[i] != text[active->left + activesize] && text.size() != 2){
                         ans[i] = 0;
                         active = root;
                         activesize = 0;
@@ -324,6 +321,7 @@ int main(){
     std::cin.tie(nullptr);
     std::ios::sync_with_stdio(false);
     std::string pattern, text;
+
     getline(std::cin,pattern);
     getline(std::cin, text);
     if (pattern.size() == 0 || text.size() == 0)

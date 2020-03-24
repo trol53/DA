@@ -34,14 +34,10 @@ class STree {
     }
 
     ~STree(){
+        delete rootend;
         DeleteTree(root);
     }
 
-    void Print(){
-        //if (root->child.empty())
-        //    return;
-        PrintR(root, 0);
-    }
     bool TextSearch(std::string &pattern){
         TNode *tmp = root;
         if (pattern.size() > text.size())
@@ -72,41 +68,53 @@ class STree {
         }
     }
 
+
     std::vector <long long> PatternSearch(std::string &txt){
         std::vector <long long> ans(txt.size());
         TNode *active = root;
-        //long long length = 0;
-        long long activesize = 0;
+        std::pair <long long, TNode*> tmp;
+        long long activesize = 0, checkway = 0;
         if (root->child.count(txt[0]) == 0){
             ans[0] = 0;
         }else{ 
-            ans[0] = 1;
             activesize = 1;
             active = active->child[txt[0]];
-        }
-        for (long long i = 1; i < ans.size(); i++){
-            if (active->left + activesize > *active->right){
-                if (active->child.count(txt[i]) != 0){
-                    activesize = 1;
-                    ans[i] = ans[i - 1] + 1;
-                    active = active->child[txt[i]];
-                    continue;
-                } else{
-                    active = active->link;
-                    i--;
-                    activesize = *active->right - active->left + 1;
-                    continue;
+            if (txt.size() == 1){
+                ans[0] = 1;
+                return ans;
+            }
+            for (long long i = 1; i < txt.size(); i++){
+                if (active->left + activesize > *active->right){
+                    if (active->child.count(txt[i]) == 0){
+                        ans[0] = active->edgelength;
+                        activesize = 0;
+                        active = active->link;
+                        break;
+                    } else {
+                        active = active->child[txt[i]];
+                        activesize = 1;
+                        continue;
+                    }
+                    if (txt[i] == text[active->left + activesize]){
+                        activesize++;
+                        continue;
+                    } else {
+                        ans[0] = active->pred->edgelength + activesize;
+                        tmp = WalkDown(activesize, active);
+                        activesize = tmp.first;
+                        active = tmp.second;
+                        checkway = active->pred->edgelength + activesize;
+                        break;
+                    }
                 }
             }
+        }
+        for (long long i = 1; i < ans.size(); i++){
             if (ans[i - 1] == 0){
                 if (active->child.count(txt[i]) == 0){
                     ans[i] = 0;
                     continue;
                 } 
-                ans[i] = 1;
-                active = active->child[txt[i]];
-                activesize = 1;
-                continue;
             }
             if (ans[i - 1] == 1){
                 if (GetLength(active) == 1){
@@ -125,23 +133,78 @@ class STree {
                     }
                 }
             }
-            if (txt[i] == text[active->left + activesize]){
-                activesize++;
-                ans[i] = ans[i - 1] + 1;
-                continue;    
-            } else {
-
+            for (long long j = i + checkway;; j++){
+                if (checkway != 0)
+                    checkway = 0;
+                if (active == root) {
+                    if (root->child.count(txt[j]) != 0){
+                        activesize = 1;
+                        active = root->child[txt[j]];
+                        continue;
+                    } else {
+                        ans[i] = 0;
+                        activesize = 0;
+                        break;
+                    }
+                }
+                if (active->left + activesize > *active->right){
+                    if (active->child.count(txt[j]) == 0){
+                        ans[i] = active->edgelength;
+                        activesize = 0;
+                        active = active->link;
+                        break;
+                    } else {
+                        active = active->child[txt[j]];
+                        activesize = 1;
+                        continue;
+                    }
+                }
+                if (txt[j] == text[active->left + activesize]){
+                    activesize++;
+                    if (j == txt.size() - 1){
+                        ans[i] = active->pred->edgelength + activesize;
+                        if (active->link == root){
+                            active = root;
+                            activesize = 0;
+                            break;
+                        }
+                        tmp = WalkDown(activesize, active);
+                        activesize = tmp.first;
+                        active = tmp.second;
+                        checkway = active->pred->edgelength + activesize;
+                    break;
+                    }
+                    continue;
+                } else {
+                    ans[i] = active->pred->edgelength + activesize;
+                    if (active->link == root){
+                        active = root;
+                        activesize = 0;
+                        break;
+                    }
+                    tmp = WalkDown(activesize, active);
+                    activesize = tmp.first;
+                    active = tmp.second;
+                    checkway = active->pred->edgelength + activesize;
+                    break;
+                }
             }
-
         }
+        return ans;
     } 
-
     
 
     private:
 
     std::pair<long long, TNode*> WalkDown(long long size, TNode *tmp){
-        long long pos = 0;;
+        long long pos = 0;
+        TNode *next = tmp->pred->link->child[text[tmp->left + pos]];
+        while (size > GetLength(next)){
+            size -= GetLength(next);
+            pos += GetLength(next);
+            next = next->child[text[tmp->left + pos]];
+        }
+        return std::make_pair(size, next);
 
     }
 
@@ -155,22 +218,6 @@ class STree {
             
     }
 
-    void PrintR(TNode *r, long long dpth){
-        for (long long i = 0; i < dpth; ++i) {
-            putchar('\t');
-        }
-
-        std::cout << "node represents: ";
-        for (long long i = r->left; i <= *r->right; i++) {   
-            std::cout << text[i];
-        }
-        std::cout << '\n';
-
-        for (auto it : r->child) {
-            PrintR(it.second, dpth + 1);
-        }
-    }
-
     long long GetLength(TNode *req){
         return *req->right + 1 - req->left;
     }
@@ -178,6 +225,7 @@ class STree {
     void Build(){
         activenode = root;
         lastnode = nullptr;
+        root->link = nullptr;
         activeEdge = -1;
         activeLength = 0;
         remainingcount = 0;
@@ -226,7 +274,7 @@ class STree {
                 }
                 splitend = new long long();
                 *splitend = next->left + activeLength - 1;
-                TNode *split = new TNode (activenode ,next->left, splitend);
+                TNode *split = new TNode (next->pred ,next->left, splitend);
                 split->link = root;
                 activenode->child[text[activeEdge]] = split;
                 TNode *tmp = new TNode(split, pos, &leaf);
@@ -234,6 +282,7 @@ class STree {
                 next->left += activeLength;
                 split->child[text[pos]] = tmp;
                 split->child[text[next->left]] = next;
+                next->pred = split;
                 if (lastnode != nullptr)
                     lastnode->link = split;
                 lastnode = split;
@@ -250,11 +299,10 @@ class STree {
 
 
     void DeleteTree(TNode *node){
-        delete rootend;
         for (auto r : node->child){
             DeleteTree(r.second);
         }
-        if (!node->child.clear())
+        if (node->link != root)
             delete node->right; 
         delete node;
     }
@@ -276,10 +324,24 @@ int main(){
     std::cin.tie(nullptr);
     std::ios::sync_with_stdio(false);
     std::string pattern, text;
-    std::cin >> pattern >> text;
-    text = text + "~";
-    STree suff(text);
-    std::cout << suff.TextSearch(pattern) << '\n';
+    getline(std::cin,pattern);
+    getline(std::cin, text);
+    if (pattern.size() == 0 || text.size() == 0)
+        return 0;
+    pattern = pattern + "~";
+    STree suff(pattern);
+    if (text.size() < pattern.size() - 1)
+        return 0;
+    //suff.Print();
+    std::vector <long long> v = suff.PatternSearch(text);
+    for (long long i = 0; i < v.size(); i++){
+        std::cout << v[i] << '\n';
+    } 
+    for (long long i = 0; i < v.size(); i++){
+        if (v[i] == pattern.size() - 1){
+            std::cout << i + 1 << '\n';
+        }
+    }
     //suff.Print();
     
     

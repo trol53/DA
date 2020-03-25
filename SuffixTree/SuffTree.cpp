@@ -95,86 +95,13 @@ class STree {
                         activesize = 1;
                         continue;
                     }
-                    if (txt[i] == text[active->left + activesize]){
-                        activesize++;
-                        continue;
-                    } else {
-                        ans[0] = active->pred->edgelength + activesize;
-                        tmp = WalkDown(activesize, active);
-                        activesize = tmp.first;
-                        active = tmp.second;
-                        checkway = active->pred->edgelength + activesize;
-                        break;
-                    }
-        for (long long i = 1; i < ans.size(); i++){
-            if (ans[i - 1] == 0){
-                if (active->child.count(txt[i]) == 0){
-                    ans[i] = 0;
-                    continue;
-                } 
-            }
-            if (ans[i - 1] == 1){
-                if (GetLength(active) == 1){
-                    if (active->child.count(txt[i]) == 0){
-                        ans[i] = 0;
-                        active = root;
-                        activesize = 0;
-                        continue;
-                    }
-                } else{
-                    if (txt[i] != text[active->left + activesize] && text.size() != 2){
-                        ans[i] = 0;
-                        active = root;
-                        activesize = 0;
-                        continue;
-                    }
                 }
-            }
-            for (long long j = i + checkway;; j++){
-                if (checkway != 0)
-                    checkway = 0;
-                if (active == root) {
-                    if (root->child.count(txt[j]) != 0){
-                        activesize = 1;
-                        active = root->child[txt[j]];
-                        continue;
-                    } else {
-                        ans[i] = 0;
-                        activesize = 0;
-                        break;
-                    }
-                }
-                if (active->left + activesize > *active->right){
-                    if (active->child.count(txt[j]) == 0){
-                        ans[i] = active->edgelength;
-                        activesize = 0;
-                        active = active->link;
-                        break;
-                    } else {
-                        active = active->child[txt[j]];
-                        activesize = 1;
-                        continue;
-                    }
-                }
-                if (txt[j] == text[active->left + activesize]){
+                if (txt[i] == text[active->left + activesize]){
                     activesize++;
-                    if (j == txt.size() - 1){
-                        ans[i] = active->pred->edgelength + activesize;
-                        if (active->link == root){
-                            active = root;
-                            activesize = 0;
-                            break;
-                        }
-                        tmp = WalkDown(activesize, active);
-                        activesize = tmp.first;
-                        active = tmp.second;
-                        checkway = active->pred->edgelength + activesize;
-                    break;
-                    }
                     continue;
                 } else {
-                    ans[i] = active->pred->edgelength + activesize;
-                    if (active->link == root){
+                    ans[0] = active->pred->edgelength + activesize;
+                    if (active->pred->link == root || active->pred == root){
                         active = root;
                         activesize = 0;
                         break;
@@ -186,6 +113,87 @@ class STree {
                     break;
                 }
             }
+        }
+            for (long long i = 1; i < ans.size(); i++){
+                if (ans[i - 1] == 0){
+                    if (active->child.count(txt[i]) == 0){
+                        ans[i] = 0;
+                        continue;
+                    } 
+                }
+                if (ans[i - 1] == 1){
+                    if (GetLength(active) == 1){
+                        if (active->child.count(txt[i]) == 0){
+                            ans[i] = 0;
+                            active = root;
+                            activesize = 0;
+                            continue;
+                        }
+                    } else{
+                        if (txt[i] != text[active->left + activesize] && text.size() != 2){
+                            ans[i] = 0;
+                            active = root;
+                            activesize = 0;
+                            continue;
+                        }
+                    }
+                }
+                for (long long j = i + checkway;; j++){
+                    if (checkway != 0)
+                        checkway = 0;
+                    if (active == root) {
+                        if (root->child.count(txt[j]) != 0){
+                            activesize = 1;
+                            active = root->child[txt[j]];
+                            continue;
+                        } else {
+                            ans[i] = 0;
+                            activesize = 0;
+                            break;
+                        }
+                    }
+                    if (active->left + activesize > *active->right){
+                        if (active->child.count(txt[j]) == 0){
+                            ans[i] = active->edgelength;
+                            activesize = 0;
+                            active = active->link;
+                            break;
+                        } else {
+                            active = active->child[txt[j]];
+                            activesize = 1;
+                            continue;
+                        }
+                    }
+                    if (txt[j] == text[active->left + activesize]){
+                        activesize++;
+                        if (j == txt.size() - 1){
+                            ans[i] = active->pred->edgelength + activesize;
+                            if (active->pred->link == root || active->pred == root){
+                                active = root;
+                                activesize = 0;
+                                break;
+                            }
+                            tmp = WalkDown(activesize, active);
+                            activesize = tmp.first;
+                            active = tmp.second;
+                            checkway = active->pred->edgelength + activesize;
+                        break;
+                        }
+                        continue;
+                    } else {
+                        ans[i] = active->pred->edgelength + activesize;
+                        if (active->pred->link == root || active->pred == root){
+                            active = root;
+                            activesize = 0;
+                            break;
+                        }
+                        tmp = WalkDown(activesize, active);
+                        activesize = tmp.first;
+                        active = tmp.second;
+                        checkway = active->pred->edgelength + activesize;
+                        break;
+                    }
+                }
         }
         return ans;
     } 
@@ -299,7 +307,7 @@ class STree {
         for (auto r : node->child){
             DeleteTree(r.second);
         }
-        if (node->link != root)
+        if (!node->child.empty() || node != root)
             delete node->right; 
         delete node;
     }

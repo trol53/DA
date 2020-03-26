@@ -6,7 +6,7 @@
 
 class TNode {
         public:
-        TNode (TNode *p, long long l, long long *r) {
+        TNode (TNode *p, long long l, long long r) {
             pred = p;
             left = l;
             right = r;
@@ -16,7 +16,7 @@ class TNode {
         TNode *pred;
         TNode *link;
         long long left;
-        long long *right;
+        long long right;
         long long edgelength;
         long long leafend;
 
@@ -27,14 +27,10 @@ class STree {
     public:
     STree(std::string &str){
         text = str;
-        rootend = new long long();
-        *rootend = -1;
-        root = new TNode(nullptr, -1, rootend);
         Build();
     }
 
     ~STree(){
-        delete rootend;
         DeleteTree(root);
     }
 
@@ -49,7 +45,7 @@ class STree {
         while (true){
             if (i == pattern.size())
                 return true;
-            if (j == *tmp->right + 1){
+            if (j == tmp->right + 1){
                 if (tmp->child.count(pattern[i]) == 0){
                     return false;
                 } else {
@@ -70,7 +66,7 @@ class STree {
 
 
     std::vector <long long> PatternSearch(std::string &txt){
-        std::vector <long long> ans(txt.size());
+        std::vector <long long> ans(txt.size(), 0);
         TNode *active = root;
         std::pair <long long, TNode*> tmp;
         long long activesize = 0, checkway = 0;
@@ -84,7 +80,7 @@ class STree {
                 return ans;
             }
             for (long long i = 1; i < txt.size(); i++){
-                if (active->left + activesize > *active->right){
+                if (active->left + activesize > active->right){
                     if (active->child.count(txt[i]) == 0){
                         ans[0] = active->edgelength;
                         activesize = 0;
@@ -93,11 +89,23 @@ class STree {
                     } else {
                         active = active->child[txt[i]];
                         activesize = 1;
+                        if (i == txt.size() - 1){
+                            ans[0] = active->pred->edgelength + activesize;
+                            active = root;
+                            activesize = 0;
+                            break;
+                        }
                         continue;
                     }
                 }
                 if (txt[i] == text[active->left + activesize]){
                     activesize++;
+                    if (i == txt.size() - 1){
+                            ans[0] = active->pred->edgelength + activesize;
+                            active = root;
+                            activesize = 0;
+                            break;
+                        }
                     continue;
                 } else {
                     ans[0] = active->pred->edgelength + activesize;
@@ -114,7 +122,7 @@ class STree {
                 }
             }
         }
-            for (long long i = 1; i < ans.size(); i++){
+            for (long long i = 1; i < ans.size() ; i++){
                 if (ans[i - 1] == 0){
                     if (active->child.count(txt[i]) == 0){
                         ans[i] = 0;
@@ -152,11 +160,12 @@ class STree {
                             break;
                         }
                     }
-                    if (active->left + activesize > *active->right){
+                    if (active->left + activesize > active->right){
                         if (active->child.count(txt[j]) == 0){
                             ans[i] = active->edgelength;
-                            activesize = 0;
                             active = active->link;
+                            activesize = GetLength(active);
+                            checkway = active->edgelength;
                             break;
                         } else {
                             active = active->child[txt[j]];
@@ -177,7 +186,7 @@ class STree {
                             activesize = tmp.first;
                             active = tmp.second;
                             checkway = active->pred->edgelength + activesize;
-                        break;
+                            break;
                         }
                         continue;
                     } else {
@@ -224,10 +233,13 @@ class STree {
     }
 
     long long GetLength(TNode *req){
-        return *req->right + 1 - req->left;
+        return req->right + 1 - req->left;
     }
 
     void Build(){
+        rootend = -1;
+        root = new TNode(nullptr, -1, rootend);
+        leaf = text.size() - 1;
         activenode = root;
         lastnode = nullptr;
         root->link = nullptr;
@@ -251,14 +263,13 @@ class STree {
     }
 
     void AddChar(long long pos){
-        leaf = pos;
         remainingcount++;
         lastnode = nullptr;
         while (remainingcount > 0){
             if (activeLength == 0)
                 activeEdge = pos;
             if (activenode->child.count(text[activeEdge]) == 0){
-                TNode *node = new TNode(activenode, pos, &leaf);
+                TNode *node = new TNode(activenode, pos, leaf);
                 node->link = root;
                 activenode->child.insert(std::make_pair(text[activeEdge], node));
                 if (lastnode != nullptr){
@@ -277,12 +288,11 @@ class STree {
                     activeLength++;
                     break;
                 }
-                splitend = new long long();
-                *splitend = next->left + activeLength - 1;
+                splitend = next->left + activeLength - 1;
                 TNode *split = new TNode (next->pred ,next->left, splitend);
                 split->link = root;
                 activenode->child[text[activeEdge]] = split;
-                TNode *tmp = new TNode(split, pos, &leaf);
+                TNode *tmp = new TNode(split, pos, leaf);
                 tmp->link = root;
                 next->left += activeLength;
                 split->child[text[pos]] = tmp;
@@ -307,8 +317,6 @@ class STree {
         for (auto r : node->child){
             DeleteTree(r.second);
         }
-        if (!node->child.empty() || node != root)
-            delete node->right; 
         delete node;
     }
 
@@ -316,8 +324,8 @@ class STree {
     TNode *root;
     TNode *lastnode;
     TNode *activenode;
-    long long *rootend;
-    long long *splitend;
+    long long rootend;
+    long long splitend;
     long long activeEdge; 
     long long activeLength; 
     long long remainingcount;
@@ -338,17 +346,10 @@ int main(){
     STree suff(pattern);
     if (text.size() < pattern.size() - 1)
         return 0;
-    //suff.Print();
     std::vector <long long> v = suff.PatternSearch(text);
-    for (long long i = 0; i < v.size(); i++){
-        std::cout << v[i] << '\n';
-    } 
     for (long long i = 0; i < v.size(); i++){
         if (v[i] == pattern.size() - 1){
             std::cout << i + 1 << '\n';
         }
-    }
-    //suff.Print();
-    
-    
+    }    
 }

@@ -52,14 +52,52 @@ class BigInteger {
         values.push_back(val);
     }
 
+    BigInteger operator=(const BigInteger rhs){
+        this->base_number_system = rhs.base_number_system;
+        this->length_system = rhs.length_system;
+        this->values = rhs.values;
+        return *this;
+    }
+
+    BigInteger operator+(BigInteger rhs){
+        BigInteger ans(this->base_number_system);
+        long long tmp(0);
+        long long sum;
+        for (long long i = 0; i < this->values.size(); i++){
+            sum = this->values[i] + rhs.values[i];
+            ans.values.push_back((sum + tmp) % base_number_system);
+            tmp = (sum + tmp) / base_number_system;
+        }
+        ans.values.push_back(tmp);
+        return ans;
+    }
+
     void Print(){
-        for (long long i = values.size() - 1; i >= 0; i--){
-            std::cout << values[i];
+        std::cout << values[values.size() - 1] << " ";
+        for (long long i = values.size() - 2; i >= 0; i--){
+            long long j = 0;
+            long long size = Int_Length(values[i]);
+            // while (j + size < length_system){
+            //     std::cout << 0;
+            //     j++;
+            // }
+            std::cout << values[i] << " ";
         }
         std::cout << '\n';
     }
 
     private:
+
+    long long Int_Length(long long val){
+        long long i = 0;
+        if (val == 0)
+            return 1;
+        while (val > 0){
+            val /= 10;
+            i++;
+        }
+        return i;
+    }
     
     long long base_number_system;
     long long length_system;
@@ -69,7 +107,11 @@ class BigInteger {
 int main(){
     std::cin.tie(nullptr);
     std::ios::sync_with_stdio(false);
-    BigInteger *a = new BigInteger(1000);
-    a->Input();
-    a->Print();
+    BigInteger a(1000), b(1000);
+    a.Input();
+    b.Input();
+    a.Print();
+    b.Print();
+    BigInteger ans = a + b;
+    ans.Print();
 }

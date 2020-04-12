@@ -35,7 +35,7 @@ class BigInteger {
             tmp = 0;
         }
         for (long long j = 0; j <= i; j++){
-            tmp = tmp * 10 + (buff[i] - '0');
+            tmp = tmp * 10 + (buff[j] - '0');
         }
         values.push_back(tmp);
     }
@@ -60,7 +60,7 @@ class BigInteger {
     }
 
     BigInteger operator+(BigInteger rhs){
-        BigInteger ans(this->base_number_system);
+        BigInteger ans();
         long long tmp(0);
         long long sum;
         for (long long i = 0; i < this->values.size(); i++){
@@ -77,10 +77,10 @@ class BigInteger {
         for (long long i = values.size() - 2; i >= 0; i--){
             long long j = 0;
             long long size = Int_Length(values[i]);
-            // while (j + size < length_system){
-            //     std::cout << 0;
-            //     j++;
-            // }
+            while (j + size < length_system){
+                std::cout << 0;
+                j++;
+            }
             std::cout << values[i] << " ";
         }
         std::cout << '\n';

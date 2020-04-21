@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
+#include <algorithm>
 
 class BigInteger {
     public: 
@@ -52,27 +53,147 @@ class BigInteger {
         values.push_back(val);
     }
 
-    BigInteger operator=(const BigInteger rhs){
+    BigInteger operator=(const BigInteger &rhs){
         this->base_number_system = rhs.base_number_system;
         this->length_system = rhs.length_system;
         this->values = rhs.values;
         return *this;
     }
 
-    BigInteger operator+(BigInteger rhs){
-        BigInteger ans();
-        long long tmp(0);
-        long long sum;
-        for (long long i = 0; i < this->values.size(); i++){
-            sum = this->values[i] + rhs.values[i];
-            ans.values.push_back((sum + tmp) % base_number_system);
-            tmp = (sum + tmp) / base_number_system;
+    bool operator==(BigInteger &rhs){
+        if (this->values.size() != rhs.values.size()){
+            return false;
+        } else {
+            for (long long i = this->values.size() - 1; i >= 0; i--){
+                if (this->values[i] != rhs.values[i])
+                    return false;
+            }
+            return true;
         }
-        ans.values.push_back(tmp);
+    }
+
+    bool operator>(BigInteger &rhs){
+        if (this->values.size() > rhs.values.size()){
+            return true;
+        } else if (this->values.size() < rhs.values.size()){
+            return false;
+        } else {
+            for (long long i = this->values.size() - 1; i >= 0; i--){
+                if (this->values[i] < rhs.values[i])
+                    return false;
+                if (this->values[i] > rhs.values[i])
+                    return true;
+            }
+            return false;
+        }
+    }
+
+    bool operator<(BigInteger &rhs){
+        if (this->values.size() < rhs.values.size()){
+            return true;
+        } else if (this->values.size() > rhs.values.size()){
+            return false;
+        } else {
+            for (long long i = this->values.size() - 1; i >= 0; i--){
+                if (this->values[i] > rhs.values[i])
+                    return false;
+                if (this->values[i] < rhs.values[i])
+                    return true;
+            }
+            return false;
+        }
+    }
+
+    bool operator<=(BigInteger &rhs){
+        return *this < rhs || *this == rhs;
+    }
+
+    bool operator>=(BigInteger &rhs){
+        return *this > rhs || *this == rhs;
+    }    
+
+    BigInteger operator+(BigInteger &rhs){
+        BigInteger ans(rhs.base_number_system);
+        long long tmp(0);
+        long long sum, i;
+
+        for (i = 0; i < std::min(this->values.size(), rhs.values.size()); i++){
+            sum = this->values[i] + rhs.values[i] + tmp;
+            ans.values.push_back(sum % base_number_system);
+            tmp = sum / base_number_system;
+        }
+        if (this->values.size() > i){
+            for (; i < this->values.size(); i++){
+                ans.values.push_back((this->values[i] + tmp) % base_number_system);
+                tmp = (this->values[i] + tmp) / base_number_system;
+            }
+            if (tmp != 0)
+                ans.values.push_back(tmp);
+        } else if (rhs.values.size() > i){
+            for (; i < rhs.values.size(); i++){
+                ans.values.push_back((rhs.values[i] + tmp) % base_number_system);
+                tmp = (rhs.values[i] + tmp) / base_number_system;
+            }
+            if (tmp != 0)
+                ans.values.push_back(tmp);
+        } else {
+            if (tmp != 0)
+                ans.values.push_back(tmp);
+        }
         return ans;
     }
 
+    BigInteger operator-(BigInteger &rhs){
+        BigInteger ans(this->base_number_system);
+        if (*this < rhs){
+            std::cout << "Error\n";
+            ans.values.push_back(-1);
+            return ans;
+        }
+        if (*this == rhs){
+            ans.values.push_back(0);
+            return ans;
+        }
+        long long transfer = 0, diff, i;
+        for (i = 0; i < rhs.values.size(); i++){        
+            diff = this->values[i] - rhs.values[i] - transfer;
+            if (diff < 0){
+                diff += base_number_system;
+                transfer = 1;
+                ans.values.push_back(diff);
+                continue;
+            }
+            ans.values.push_back(diff);
+            transfer = 0;
+        }
+
+        for (; i < this->values.size(); i++){
+            diff = this->values[i] - transfer;
+            if (diff < 0){
+                diff += base_number_system;
+                transfer = 1;
+                ans.values.push_back(diff);
+                continue;
+            }
+            transfer = 0;
+        }
+        return ans;
+
+    }
+
+    void operator*=(long long rhs){
+        long long transfer = 0;
+        for (long long i = 0; i < this->values.size(); i++){
+            this->values[i] = (this->values[i] * rhs + transfer) % base_number_system;
+            transfer = (this->values[i] * rhs + transfer) / base_number_system;
+        }
+        
+    }
+
     void Print(){
+        if (values[0] == -1 || values.empty()){
+            return;
+        }
         std::cout << values[values.size() - 1] << " ";
         for (long long i = values.size() - 2; i >= 0; i--){
             long long j = 0;
@@ -107,11 +228,11 @@ class BigInteger {
 int main(){
     std::cin.tie(nullptr);
     std::ios::sync_with_stdio(false);
-    BigInteger a(1000), b(1000);
+    BigInteger a(100000), b(100000);
     a.Input();
     b.Input();
     a.Print();
     b.Print();
-    BigInteger ans = a + b;
+    BigInteger ans = a - b;
     ans.Print();
 }

@@ -176,18 +176,45 @@ class BigInteger {
                 continue;
             }
             transfer = 0;
+            ans.values.push_back(diff);
+
         }
         return ans;
 
     }
 
     void operator*=(long long rhs){
-        long long transfer = 0;
+        long long transfer = 0, mult;
         for (long long i = 0; i < this->values.size(); i++){
-            this->values[i] = (this->values[i] * rhs + transfer) % base_number_system;
-            transfer = (this->values[i] * rhs + transfer) / base_number_system;
+            mult = this->values[i] * rhs + transfer;
+            this->values[i] = mult % base_number_system;
+            transfer = mult / base_number_system;
         }
-        
+        if (transfer > 0){
+            this->values.push_back(transfer % base_number_system);
+        } 
+    }
+
+    BigInteger BaseMult(BigInteger &rhs){
+        BigInteger ans(this->base_number_system);
+        ans.values.resize(this->values.size() + rhs.values.size(), 0);
+        long long i, j, transfer = 0;
+        for (i = 0; i < this->values.size(); i++){
+            transfer = 0;
+            for (j = 0; j < rhs.values.size(); j++){
+                ans.values[i + j] += this->values[i] * rhs.values[j] + transfer;                
+                transfer = ans.values[i + j] / ans.base_number_system;
+                ans.values[i + j] %= ans.base_number_system;
+            }
+            if (transfer != 0){
+                ans.values[i + rhs.values.size()] = transfer;
+            }
+        }
+        if (transfer != 0){
+            ans.values[i + rhs.values.size()] = transfer;
+        }
+        Normalize(ans);
+        return ans;
     }
 
     void Print(){
@@ -208,6 +235,14 @@ class BigInteger {
     }
 
     private:
+
+    void Normalize(BigInteger &val){
+        long long i = val.values.size() - 1;
+        while (val.values[i] == 0 && i > 0){
+            i--;
+            val.values.pop_back();
+        }
+    }
 
     long long Int_Length(long long val){
         long long i = 0;
@@ -233,6 +268,6 @@ int main(){
     b.Input();
     a.Print();
     b.Print();
-    BigInteger ans = a - b;
+    BigInteger ans = a.BaseMult(b);
     ans.Print();
 }

@@ -3,6 +3,9 @@
 #include <map>
 #include <cstdio>
 #include <string>
+#include <queue>
+#include <fstream>
+#include <ctime>
 
 class TNode {
         public:
@@ -34,20 +37,24 @@ class STree {
         DeleteTree(root);
     }
 
-    bool TextSearch(std::string &pattern){
+    std::vector <long long> TextSearch(std::string &pattern){
         TNode *tmp = root;
+        std::vector <long long> ans;
+        ans.push_back(-1);
         if (pattern.size() > text.size())
-            return false;
+            return ans;
         if (tmp->child.count(pattern[0]) == 0)
-            return false;
+            return ans;
         tmp = tmp->child[pattern[0]];
         long long i = 0, j = tmp->left;
         while (true){
-            if (i == pattern.size())
-                return true;
+            if (i == pattern.size()){
+                Get_Pos(tmp, ans);
+                break;
+            }
             if (j == tmp->right + 1){
                 if (tmp->child.count(pattern[i]) == 0){
-                    return false;
+                    return ans;
                 } else {
                     tmp = tmp->child[pattern[i]];
                     i++;
@@ -56,12 +63,13 @@ class STree {
                 }
             }
             if (pattern[i] != text[j]){
-                return false;
+                return ans;
             } else {
                 i++;
                 j++;
             }
         }
+        return ans;
     }
 
 
@@ -210,6 +218,27 @@ class STree {
 
     private:
 
+    void Get_Pos(TNode *suf, std::vector <long long> &ans){
+        
+        ans.clear();
+        std::queue <TNode*> nodes;
+        nodes.push(suf);
+        while (!nodes.empty()){
+            TNode *tmp = nodes.front();
+            nodes.pop();
+            if (tmp->child.size() != 0){
+                for (auto i : tmp->child){
+                    nodes.push(i.second);
+                }
+            } else {
+                ans.push_back(text.size() - tmp->edgelength + 1);
+            }
+        }
+
+
+        
+    }
+
     std::pair<long long, TNode*> WalkDown(long long size, TNode *tmp){
         long long pos = 0;
         TNode *next = tmp->pred->link->child[text[tmp->left + pos]];
@@ -337,19 +366,31 @@ int main(){
     std::cin.tie(nullptr);
     std::ios::sync_with_stdio(false);
     std::string pattern, text;
-
-    getline(std::cin,pattern);
-    getline(std::cin, text);
-    if (pattern.size() == 0 || text.size() == 0)
-        return 0;
-    pattern = pattern + "~";
-    STree suff(pattern);
-    if (text.size() < pattern.size() - 1)
-        return 0;
-    std::vector <long long> v = suff.PatternSearch(text);
-    for (long long i = 0; i < v.size(); i++){
-        if (v[i] == pattern.size() - 1){
-            std::cout << i + 1 << '\n';
+    // std::ifstream file("input.txt"); 
+    // getline(file,pattern);
+    // getline(file, text);
+    std::cin >> text;
+    //unsigned long long begin = clock();
+    // if (pattern.size() == 0 || text.size() == 0)
+    //     return 0;
+    text = text + "~";
+    STree suff(text);
+    int count = 1;
+    // if (text.size() < pattern.size() - 1)
+    //     return 0;
+    while (std::cin >> pattern){
+        std::vector <long long> v = suff.TextSearch(pattern);
+        if (v[0] == -1){
+            count++;
+            continue;
         }
-    }    
+        std::cout << count << ':' << " " << v[0];
+        for (long long i = 1; i < v.size(); i++){
+            std::cout << ',' << " " << v[i];
+        }    
+        std::cout << '\n';
+        count++;
+    }
+    //unsigned long long finish = clock();
+    //std::cout << finish - begin << '\n';
 }
